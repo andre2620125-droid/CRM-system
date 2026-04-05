@@ -11,8 +11,18 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Lazy — only initialise on the client (browser).
+// Calling initializeApp / getAuth at module level runs during Next.js
+// static generation (server) where NEXT_PUBLIC vars may not exist,
+// causing auth/invalid-api-key build errors.
+function getApp() {
+  return getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export default app;
+export function getFirebaseAuth() {
+  return getAuth(getApp());
+}
+
+export function getFirebaseDb() {
+  return getFirestore(getApp());
+}
